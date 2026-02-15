@@ -14,12 +14,13 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;padding:0 0 100px 0;-webkit-tap-highlight-color:transparent;user-select:none}
 .header{background:linear-gradient(135deg,#1e3a5f,#0c4a6e,#164e63);padding:48px 20px 24px;text-align:center}
 .header h1{font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.5px}
-.header h1 .accent{color:var(--cyan);font-weight:300;font-size:16px}
 .header .subtitle{color:var(--cyan);font-size:13px;font-weight:500;letter-spacing:2px;text-transform:uppercase;margin-top:2px;opacity:.7}
 .header .date{color:var(--muted);font-size:14px;margin-top:8px}
 .container{padding:16px;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 .card{background:var(--card);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
-.card-title{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;margin-bottom:12px}
+.card-title{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.card-title .edit-icon{font-size:16px;cursor:pointer;opacity:.5;transition:opacity .15s}
+.card-title .edit-icon:active{opacity:1}
 .big-number{font-size:42px;font-weight:800;letter-spacing:-1px}
 .big-number span{font-size:20px;font-weight:500;color:var(--muted)}
 .progress-wrap{background:var(--card2);border-radius:99px;height:12px;margin-top:14px;overflow:hidden}
@@ -43,12 +44,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .log-time{color:var(--muted);font-size:14px;width:55px}
 .log-amount{font-weight:700;font-size:16px;flex:1;text-align:right;margin-right:12px}
 .log-empty{color:var(--muted);font-size:14px;text-align:center;padding:20px 0}
-.filter-info{display:flex;align-items:baseline;gap:8px;margin-top:2px}
 .filter-since{font-size:13px;color:var(--muted)}
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-overlay.active{opacity:1;pointer-events:auto}
 .modal{background:var(--card);border-radius:var(--radius);padding:24px;width:100%;max-width:340px;text-align:center}
 .modal h3{font-size:18px;margin-bottom:16px}
+.modal-field{margin-bottom:14px;text-align:left}
+.modal-field label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
 .modal input{width:100%;padding:14px;border-radius:12px;border:2px solid var(--card2);background:var(--bg);color:var(--text);font-size:20px;text-align:center;outline:none;font-weight:700}
 .modal input:focus{border-color:var(--blue)}
 .modal .btn-row{margin-top:16px}
@@ -57,7 +59,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .confirm-text{font-size:14px;color:var(--muted);line-height:1.5;margin-bottom:16px}
 .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:99px;font-weight:600;font-size:15px;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
-.droplet{position:absolute;right:16px;top:16px;font-size:48px;opacity:.15}
+.droplet{position:absolute;right:16px;top:50px;font-size:48px;opacity:.15}
 .logo-icon{font-size:32px}
 </style>
 </head>
@@ -71,26 +73,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <!-- TODAY -->
 <div class="card">
 <div class="droplet">💧</div>
-<div class="card-title">Aujourd'hui</div>
+<div class="card-title">Aujourd'hui <span class="edit-icon" onclick="openSettings()">⚙️</span></div>
 <div class="big-number" id="todayTotal">0 <span>ml</span></div>
 <div class="progress-wrap"><div class="progress-bar blue" id="todayBar" style="width:2%"></div></div>
 <div class="progress-label"><span id="todayPct">0%</span><span>Objectif : <span id="goalDisplay">2 000</span> ml</span></div>
 <div class="btn-row" style="margin-top:16px">
-<button class="btn btn-primary" onclick="addWater(650)">🥤 650 ml</button>
-<button class="btn btn-half" onclick="addWater(325)">½ 325 ml</button>
+<button class="btn btn-primary" id="btn1" onclick="addWater(getBtn(1))"></button>
+<button class="btn btn-half" id="btn2" onclick="addWater(getBtn(2))"></button>
 <button class="btn btn-custom" onclick="openCustom()">✏️</button>
 </div>
 </div>
 <!-- FILTER -->
 <div class="card">
 <div class="droplet">⚗️</div>
-<div class="card-title">Compteur filtre</div>
-<div class="filter-info">
+<div class="card-title">Compteur filtre <span class="edit-icon" onclick="openFilterSettings()">⚙️</span></div>
 <div class="big-number" id="filterTotal">0 <span>L</span></div>
-</div>
 <div class="filter-since" id="filterSince">Depuis le —</div>
 <div class="progress-wrap" style="height:16px;margin-top:14px"><div class="progress-bar green" id="filterBar" style="width:2%"></div></div>
-<div class="progress-label"><span id="filterPct">0%</span><span>Objectif : 400 L</span></div>
+<div class="progress-label"><span id="filterPct">0%</span><span>Limite : <span id="filterLimitDisplay">400</span> L</span></div>
 <button class="btn btn-reset" onclick="openReset()">⚗️ Filtre changé — Réinitialiser</button>
 </div>
 <!-- LOG -->
@@ -99,40 +99,89 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div id="logList"><div class="log-empty">Aucune entrée aujourd'hui</div></div>
 </div>
 </div>
+
 <!-- CUSTOM MODAL -->
 <div class="modal-overlay" id="customModal">
 <div class="modal">
 <h3>Quantité personnalisée</h3>
 <input type="number" id="customInput" placeholder="ml" inputmode="numeric">
 <div class="btn-row">
-<button class="btn btn-cancel" onclick="closeCustom()">Annuler</button>
+<button class="btn btn-cancel" onclick="closeModal('customModal')">Annuler</button>
 <button class="btn btn-confirm" onclick="confirmCustom()">Ajouter</button>
 </div>
 </div>
 </div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal">
+<div class="modal">
+<h3>⚙️ Réglages hydratation</h3>
+<div class="modal-field">
+<label>Objectif quotidien (ml)</label>
+<input type="number" id="settGoal" inputmode="numeric">
+</div>
+<div class="modal-field">
+<label>Raccourci 1 (ml)</label>
+<input type="number" id="settBtn1" inputmode="numeric">
+</div>
+<div class="modal-field">
+<label>Raccourci 2 (ml)</label>
+<input type="number" id="settBtn2" inputmode="numeric">
+</div>
+<div class="btn-row">
+<button class="btn btn-cancel" onclick="closeModal('settingsModal')">Annuler</button>
+<button class="btn btn-confirm" onclick="saveSettings()">Enregistrer</button>
+</div>
+</div>
+</div>
+
+<!-- FILTER SETTINGS MODAL -->
+<div class="modal-overlay" id="filterSettingsModal">
+<div class="modal">
+<h3>⚙️ Réglages filtre</h3>
+<div class="modal-field">
+<label>Limite du filtre (litres)</label>
+<input type="number" id="settFilterLimit" inputmode="numeric">
+</div>
+<div class="btn-row">
+<button class="btn btn-cancel" onclick="closeModal('filterSettingsModal')">Annuler</button>
+<button class="btn btn-confirm" onclick="saveFilterSettings()">Enregistrer</button>
+</div>
+</div>
+</div>
+
 <!-- RESET MODAL -->
 <div class="modal-overlay" id="resetModal">
 <div class="modal">
 <h3>⚗️ Changer le filtre ?</h3>
 <p class="confirm-text">Le compteur cumulé sera remis à zéro. Cette action est irréversible.</p>
 <div class="btn-row">
-<button class="btn btn-cancel" onclick="closeReset()">Annuler</button>
+<button class="btn btn-cancel" onclick="closeModal('resetModal')">Annuler</button>
 <button class="btn btn-confirm" style="background:var(--orange)" onclick="confirmReset()">Réinitialiser</button>
 </div>
 </div>
 </div>
-<!-- TOAST -->
+
 <div class="toast" id="toast"></div>
 
 <script>
-const DAILY_GOAL=2000,FILTER_GOAL=400;
 const $=id=>document.getElementById(id);
+
+const DEFAULTS={dailyGoal:2000,btn1:650,btn2:325,filterLimit:400};
 
 let _mem={};
 const S={
   get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return _mem[k]||null}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}_mem[k]=v}
 };
+
+function getConfig(){
+  let c=S.get('philtre_config');
+  if(!c)c={...DEFAULTS};
+  return {...DEFAULTS,...c};
+}
+function saveConfig(c){S.set('philtre_config',c)}
+function getBtn(n){return getConfig()['btn'+n]}
 
 function todayKey(){return new Date().toISOString().slice(0,10)}
 function getData(){
@@ -145,7 +194,7 @@ function getData(){
 function save(d){S.set('philtre_data',d)}
 
 function addWater(ml){
-  if(ml<=0)return;
+  if(!ml||ml<=0)return;
   let d=getData(),k=todayKey(),now=new Date();
   if(!d.entries[k])d.entries[k]=[];
   d.entries[k].push({ml,time:now.toTimeString().slice(0,5)});
@@ -176,28 +225,34 @@ function getFilterTotal(d){
 }
 
 function render(){
-  let d=getData(),k=todayKey(),entries=d.entries[k]||[];
+  let cfg=getConfig(),d=getData(),k=todayKey(),entries=d.entries[k]||[];
   let now=new Date();
-  let opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
-  $('dateDisplay').textContent=now.toLocaleDateString('fr-FR',opts);
+  $('dateDisplay').textContent=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  // Buttons
+  $('btn1').innerHTML=`🥤 ${cfg.btn1} ml`;
+  $('btn2').innerHTML=`½ ${cfg.btn2} ml`;
+
   // Today
   let todayMl=entries.reduce((s,e)=>s+e.ml,0);
   $('todayTotal').innerHTML=`${todayMl.toLocaleString('fr-FR')} <span>ml</span>`;
-  let pct=Math.min(100,Math.round(todayMl/DAILY_GOAL*100));
+  let pct=Math.min(100,Math.round(todayMl/cfg.dailyGoal*100));
   $('todayBar').style.width=Math.max(2,pct)+'%';
   $('todayPct').textContent=pct+'%';
-  $('goalDisplay').textContent=DAILY_GOAL.toLocaleString('fr-FR');
+  $('goalDisplay').textContent=cfg.dailyGoal.toLocaleString('fr-FR');
+
   // Filter
   let fTotal=getFilterTotal(d);
-  let fL=(fTotal/1000);
+  let fL=fTotal/1000;
   $('filterTotal').innerHTML=`${fL.toFixed(1)} <span>L</span>`;
-  let fPct=Math.min(100,Math.round(fL/FILTER_GOAL*100));
+  let fPct=Math.min(100,Math.round(fL/cfg.filterLimit*100));
   $('filterBar').style.width=Math.max(2,fPct)+'%';
-  let fb=$('filterBar');
-  fb.className='progress-bar '+(fPct>=90?'orange':'green');
+  $('filterBar').className='progress-bar '+(fPct>=90?'orange':'green');
   $('filterPct').textContent=fPct+'%';
+  $('filterLimitDisplay').textContent=cfg.filterLimit;
   let fs=new Date(d.filterStart+'T00:00:00');
   $('filterSince').textContent='Depuis le '+fs.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
   // Log
   let logEl=$('logList');
   if(!entries.length){logEl.innerHTML='<div class="log-empty">Aucune entrée aujourd\'hui</div>';return}
@@ -209,17 +264,57 @@ function render(){
     </div>`).join('');
 }
 
+// Modals
+function closeModal(id){$(id).classList.remove('active')}
+
 function openCustom(){$('customModal').classList.add('active');$('customInput').value='';setTimeout(()=>$('customInput').focus(),200)}
-function closeCustom(){$('customModal').classList.remove('active')}
-function confirmCustom(){let v=parseInt($('customInput').value);if(v>0){addWater(v);closeCustom()}else{$('customInput').style.borderColor='var(--red)'}}
+function confirmCustom(){let v=parseInt($('customInput').value);if(v>0){addWater(v);closeModal('customModal')}else{$('customInput').style.borderColor='var(--red)'}}
+
+function openSettings(){
+  let c=getConfig();
+  $('settGoal').value=c.dailyGoal;
+  $('settBtn1').value=c.btn1;
+  $('settBtn2').value=c.btn2;
+  $('settingsModal').classList.add('active');
+  setTimeout(()=>$('settGoal').focus(),200);
+}
+function saveSettings(){
+  let g=parseInt($('settGoal').value),b1=parseInt($('settBtn1').value),b2=parseInt($('settBtn2').value);
+  if(g>0&&b1>0&&b2>0){
+    let c=getConfig();
+    c.dailyGoal=g;c.btn1=b1;c.btn2=b2;
+    saveConfig(c);
+    closeModal('settingsModal');
+    render();
+    showToast('Réglages sauvegardés ✓');
+  }
+}
+
+function openFilterSettings(){
+  let c=getConfig();
+  $('settFilterLimit').value=c.filterLimit;
+  $('filterSettingsModal').classList.add('active');
+  setTimeout(()=>$('settFilterLimit').focus(),200);
+}
+function saveFilterSettings(){
+  let v=parseInt($('settFilterLimit').value);
+  if(v>0){
+    let c=getConfig();
+    c.filterLimit=v;
+    saveConfig(c);
+    closeModal('filterSettingsModal');
+    render();
+    showToast('Limite filtre mise à jour ✓');
+  }
+}
+
 function openReset(){$('resetModal').classList.add('active')}
-function closeReset(){$('resetModal').classList.remove('active')}
 function confirmReset(){
   let d=getData();
   d.filterStart=todayKey();
   d.filterEntries={};
   save(d);
-  closeReset();
+  closeModal('resetModal');
   render();
   showToast('Compteur filtre réinitialisé ⚗️');
 }
@@ -231,7 +326,17 @@ function showToast(msg){
   toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
 }
 
-$('customInput').addEventListener('keydown',e=>{if(e.key==='Enter')confirmCustom()});
+// Enter key in modals
+['customInput','settGoal','settBtn1','settBtn2','settFilterLimit'].forEach(id=>{
+  $(id).addEventListener('keydown',e=>{
+    if(e.key==='Enter'){
+      if(id==='customInput')confirmCustom();
+      else if(id==='settFilterLimit')saveFilterSettings();
+      else saveSettings();
+    }
+  });
+});
+
 render();
 </script>
 </body>
