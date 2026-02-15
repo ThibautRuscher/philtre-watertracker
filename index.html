@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Philtre">
+<meta name="theme-color" content="#0f172a">
+<title>Philtre — Water Tracker</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0f172a;--card:#1e293b;--card2:#334155;--blue:#3b82f6;--cyan:#06b6d4;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--text:#f1f5f9;--muted:#94a3b8;--radius:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;padding:0 0 100px 0;-webkit-tap-highlight-color:transparent;user-select:none}
+.header{background:linear-gradient(135deg,#1e3a5f,#0c4a6e,#164e63);padding:48px 20px 24px;text-align:center}
+.header h1{font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.5px}
+.header h1 .accent{color:var(--cyan);font-weight:300;font-size:16px}
+.header .subtitle{color:var(--cyan);font-size:13px;font-weight:500;letter-spacing:2px;text-transform:uppercase;margin-top:2px;opacity:.7}
+.header .date{color:var(--muted);font-size:14px;margin-top:8px}
+.container{padding:16px;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--card);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
+.card-title{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;margin-bottom:12px}
+.big-number{font-size:42px;font-weight:800;letter-spacing:-1px}
+.big-number span{font-size:20px;font-weight:500;color:var(--muted)}
+.progress-wrap{background:var(--card2);border-radius:99px;height:12px;margin-top:14px;overflow:hidden}
+.progress-bar{height:100%;border-radius:99px;transition:width .5s cubic-bezier(.4,0,.2,1);min-width:2%}
+.progress-bar.blue{background:linear-gradient(90deg,var(--blue),var(--cyan))}
+.progress-bar.green{background:linear-gradient(90deg,var(--green),var(--cyan))}
+.progress-bar.orange{background:linear-gradient(90deg,var(--orange),var(--red))}
+.progress-label{display:flex;justify-content:space-between;margin-top:8px;font-size:13px;color:var(--muted)}
+.btn-row{display:flex;gap:10px;margin-top:4px;flex-wrap:wrap}
+.btn{border:none;border-radius:12px;padding:14px 0;font-size:16px;font-weight:700;cursor:pointer;flex:1;min-width:0;transition:transform .1s,opacity .1s;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn:active{transform:scale(.95);opacity:.85}
+.btn-primary{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#fff}
+.btn-half{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+.btn-custom{background:var(--card2);color:var(--text);flex:0.7}
+.btn-reset{background:var(--card2);color:var(--orange);border:2px solid var(--orange);margin-top:8px;padding:12px 20px;font-size:14px}
+.btn-reset:active{background:var(--orange);color:#fff}
+.btn-undo{background:transparent;color:var(--red);border:1.5px solid var(--red);padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-undo:active{background:var(--red);color:#fff}
+.log-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--card2)}
+.log-item:last-child{border:none}
+.log-time{color:var(--muted);font-size:14px;width:55px}
+.log-amount{font-weight:700;font-size:16px;flex:1;text-align:right;margin-right:12px}
+.log-empty{color:var(--muted);font-size:14px;text-align:center;padding:20px 0}
+.filter-info{display:flex;align-items:baseline;gap:8px;margin-top:2px}
+.filter-since{font-size:13px;color:var(--muted)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.active{opacity:1;pointer-events:auto}
+.modal{background:var(--card);border-radius:var(--radius);padding:24px;width:100%;max-width:340px;text-align:center}
+.modal h3{font-size:18px;margin-bottom:16px}
+.modal input{width:100%;padding:14px;border-radius:12px;border:2px solid var(--card2);background:var(--bg);color:var(--text);font-size:20px;text-align:center;outline:none;font-weight:700}
+.modal input:focus{border-color:var(--blue)}
+.modal .btn-row{margin-top:16px}
+.modal .btn-cancel{background:var(--card2);color:var(--muted)}
+.modal .btn-confirm{background:var(--blue);color:#fff}
+.confirm-text{font-size:14px;color:var(--muted);line-height:1.5;margin-bottom:16px}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:99px;font-weight:600;font-size:15px;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.droplet{position:absolute;right:16px;top:16px;font-size:48px;opacity:.15}
+.logo-icon{font-size:32px}
+</style>
+</head>
+<body>
+<div class="header">
+<h1><span class="logo-icon">⚗️</span> Philtre</h1>
+<div class="subtitle">Water Tracker</div>
+<div class="date" id="dateDisplay"></div>
+</div>
+<div class="container">
+<!-- TODAY -->
+<div class="card">
+<div class="droplet">💧</div>
+<div class="card-title">Aujourd'hui</div>
+<div class="big-number" id="todayTotal">0 <span>ml</span></div>
+<div class="progress-wrap"><div class="progress-bar blue" id="todayBar" style="width:2%"></div></div>
+<div class="progress-label"><span id="todayPct">0%</span><span>Objectif : <span id="goalDisplay">2 000</span> ml</span></div>
+<div class="btn-row" style="margin-top:16px">
+<button class="btn btn-primary" onclick="addWater(650)">🥤 650 ml</button>
+<button class="btn btn-half" onclick="addWater(325)">½ 325 ml</button>
+<button class="btn btn-custom" onclick="openCustom()">✏️</button>
+</div>
+</div>
+<!-- FILTER -->
+<div class="card">
+<div class="droplet">⚗️</div>
+<div class="card-title">Compteur filtre</div>
+<div class="filter-info">
+<div class="big-number" id="filterTotal">0 <span>L</span></div>
+</div>
+<div class="filter-since" id="filterSince">Depuis le —</div>
+<div class="progress-wrap" style="height:16px;margin-top:14px"><div class="progress-bar green" id="filterBar" style="width:2%"></div></div>
+<div class="progress-label"><span id="filterPct">0%</span><span>Objectif : 400 L</span></div>
+<button class="btn btn-reset" onclick="openReset()">⚗️ Filtre changé — Réinitialiser</button>
+</div>
+<!-- LOG -->
+<div class="card">
+<div class="card-title">Journal du jour</div>
+<div id="logList"><div class="log-empty">Aucune entrée aujourd'hui</div></div>
+</div>
+</div>
+<!-- CUSTOM MODAL -->
+<div class="modal-overlay" id="customModal">
+<div class="modal">
+<h3>Quantité personnalisée</h3>
+<input type="number" id="customInput" placeholder="ml" inputmode="numeric">
+<div class="btn-row">
+<button class="btn btn-cancel" onclick="closeCustom()">Annuler</button>
+<button class="btn btn-confirm" onclick="confirmCustom()">Ajouter</button>
+</div>
+</div>
+</div>
+<!-- RESET MODAL -->
+<div class="modal-overlay" id="resetModal">
+<div class="modal">
+<h3>⚗️ Changer le filtre ?</h3>
+<p class="confirm-text">Le compteur cumulé sera remis à zéro. Cette action est irréversible.</p>
+<div class="btn-row">
+<button class="btn btn-cancel" onclick="closeReset()">Annuler</button>
+<button class="btn btn-confirm" style="background:var(--orange)" onclick="confirmReset()">Réinitialiser</button>
+</div>
+</div>
+</div>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+const DAILY_GOAL=2000,FILTER_GOAL=400;
+const $=id=>document.getElementById(id);
+
+let _mem={};
+const S={
+  get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return _mem[k]||null}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}_mem[k]=v}
+};
+
+function todayKey(){return new Date().toISOString().slice(0,10)}
+function getData(){
+  let d=S.get('philtre_data');
+  if(!d)d={entries:{},filterStart:todayKey(),filterEntries:{}};
+  if(!d.filterStart)d.filterStart=todayKey();
+  if(!d.filterEntries)d.filterEntries={};
+  return d;
+}
+function save(d){S.set('philtre_data',d)}
+
+function addWater(ml){
+  if(ml<=0)return;
+  let d=getData(),k=todayKey(),now=new Date();
+  if(!d.entries[k])d.entries[k]=[];
+  d.entries[k].push({ml,time:now.toTimeString().slice(0,5)});
+  if(!d.filterEntries[k])d.filterEntries[k]=0;
+  d.filterEntries[k]+=ml;
+  save(d);
+  render();
+  showToast(`+${ml} ml ajoutés ✓`);
+}
+
+function removeEntry(idx){
+  let d=getData(),k=todayKey();
+  if(!d.entries[k]||!d.entries[k][idx])return;
+  let ml=d.entries[k][idx].ml;
+  d.entries[k].splice(idx,1);
+  if(d.filterEntries[k])d.filterEntries[k]=Math.max(0,d.filterEntries[k]-ml);
+  save(d);
+  render();
+  showToast(`-${ml} ml supprimés`);
+}
+
+function getFilterTotal(d){
+  let total=0;
+  for(let k in d.filterEntries){
+    if(k>=d.filterStart)total+=d.filterEntries[k];
+  }
+  return total;
+}
+
+function render(){
+  let d=getData(),k=todayKey(),entries=d.entries[k]||[];
+  let now=new Date();
+  let opts={weekday:'long',day:'numeric',month:'long',year:'numeric'};
+  $('dateDisplay').textContent=now.toLocaleDateString('fr-FR',opts);
+  // Today
+  let todayMl=entries.reduce((s,e)=>s+e.ml,0);
+  $('todayTotal').innerHTML=`${todayMl.toLocaleString('fr-FR')} <span>ml</span>`;
+  let pct=Math.min(100,Math.round(todayMl/DAILY_GOAL*100));
+  $('todayBar').style.width=Math.max(2,pct)+'%';
+  $('todayPct').textContent=pct+'%';
+  $('goalDisplay').textContent=DAILY_GOAL.toLocaleString('fr-FR');
+  // Filter
+  let fTotal=getFilterTotal(d);
+  let fL=(fTotal/1000);
+  $('filterTotal').innerHTML=`${fL.toFixed(1)} <span>L</span>`;
+  let fPct=Math.min(100,Math.round(fL/FILTER_GOAL*100));
+  $('filterBar').style.width=Math.max(2,fPct)+'%';
+  let fb=$('filterBar');
+  fb.className='progress-bar '+(fPct>=90?'orange':'green');
+  $('filterPct').textContent=fPct+'%';
+  let fs=new Date(d.filterStart+'T00:00:00');
+  $('filterSince').textContent='Depuis le '+fs.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+  // Log
+  let logEl=$('logList');
+  if(!entries.length){logEl.innerHTML='<div class="log-empty">Aucune entrée aujourd\'hui</div>';return}
+  logEl.innerHTML=entries.map((e,i)=>`
+    <div class="log-item">
+      <span class="log-time">${e.time}</span>
+      <span class="log-amount">${e.ml} ml</span>
+      <button class="btn-undo" onclick="removeEntry(${i})">✕</button>
+    </div>`).join('');
+}
+
+function openCustom(){$('customModal').classList.add('active');$('customInput').value='';setTimeout(()=>$('customInput').focus(),200)}
+function closeCustom(){$('customModal').classList.remove('active')}
+function confirmCustom(){let v=parseInt($('customInput').value);if(v>0){addWater(v);closeCustom()}else{$('customInput').style.borderColor='var(--red)'}}
+function openReset(){$('resetModal').classList.add('active')}
+function closeReset(){$('resetModal').classList.remove('active')}
+function confirmReset(){
+  let d=getData();
+  d.filterStart=todayKey();
+  d.filterEntries={};
+  save(d);
+  closeReset();
+  render();
+  showToast('Compteur filtre réinitialisé ⚗️');
+}
+
+let toastTimer;
+function showToast(msg){
+  let t=$('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+$('customInput').addEventListener('keydown',e=>{if(e.key==='Enter')confirmCustom()});
+render();
+</script>
+</body>
+</html>
