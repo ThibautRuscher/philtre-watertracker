@@ -10,12 +10,29 @@
 <title>Philtre — Water Tracker</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#0f172a;--card:#1e293b;--card2:#334155;--blue:#3b82f6;--cyan:#06b6d4;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--text:#f1f5f9;--muted:#94a3b8;--radius:16px}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;padding:0 0 100px 0;-webkit-tap-highlight-color:transparent;user-select:none}
+:root{--bg:#0f172a;--card:#1e293b;--card2:#334155;--blue:#3b82f6;--cyan:#06b6d4;--green:#10b981;--orange:#f59e0b;--red:#ef4444;--text:#f1f5f9;--muted:#94a3b8;--radius:16px;--purple:#8b5cf6;--tab-h:68px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;-webkit-tap-highlight-color:transparent;user-select:none}
+
+/* TAB BAR */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;height:var(--tab-h);background:var(--card);border-top:1px solid var(--card2);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+.tab-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:color .15s;padding:8px 0;letter-spacing:.3px}
+.tab-btn:active{opacity:.7}
+.tab-btn.active{color:var(--cyan)}
+.tab-btn .tab-icon{font-size:22px;line-height:1}
+.tab-indicator{position:absolute;top:0;height:2.5px;background:var(--cyan);border-radius:0 0 4px 4px;transition:left .3s cubic-bezier(.4,0,.2,1),width .3s cubic-bezier(.4,0,.2,1)}
+
+/* VIEWS */
+.view{display:none;padding-bottom:calc(var(--tab-h) + 16px)}
+.view.active{display:block}
+
 .header{background:linear-gradient(135deg,#1e3a5f,#0c4a6e,#164e63);padding:48px 20px 24px;text-align:center}
 .header h1{font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;letter-spacing:-.5px}
 .header .subtitle{color:var(--cyan);font-size:13px;font-weight:500;letter-spacing:2px;text-transform:uppercase;margin-top:2px;opacity:.7}
 .header .date{color:var(--muted);font-size:14px;margin-top:8px}
+
+.header-hist{background:linear-gradient(135deg,#1e3a5f,#0c4a6e,#164e63);padding:48px 20px 20px;text-align:center}
+.header-hist h2{font-size:22px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px}
+
 .container{padding:16px;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 .card{background:var(--card);border-radius:var(--radius);padding:20px;position:relative;overflow:hidden}
 .card-title{font-size:13px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);font-weight:600;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
@@ -29,6 +46,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .progress-bar.green{background:linear-gradient(90deg,var(--green),var(--cyan))}
 .progress-bar.orange{background:linear-gradient(90deg,var(--orange),var(--red))}
 .progress-label{display:flex;justify-content:space-between;margin-top:8px;font-size:13px;color:var(--muted)}
+.chip-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.chip{display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:99px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:1.5px solid var(--card2);background:transparent;color:var(--muted)}
+.chip:active{transform:scale(.95)}
+.chip.active-yesterday{border-color:var(--purple);background:rgba(139,92,246,.15);color:var(--purple)}
+.chip.active-unfiltered{border-color:var(--orange);background:rgba(245,158,11,.15);color:var(--orange)}
+.chip .chip-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.chip-yesterday .chip-dot{background:var(--card2)}.chip-yesterday.active-yesterday .chip-dot{background:var(--purple)}
+.chip-unfiltered .chip-dot{background:var(--card2)}.chip-unfiltered.active-unfiltered .chip-dot{background:var(--orange)}
 .btn-row{display:flex;gap:10px;margin-top:4px;flex-wrap:wrap}
 .btn{border:none;border-radius:12px;padding:14px 0;font-size:16px;font-weight:700;cursor:pointer;flex:1;min-width:0;transition:transform .1s,opacity .1s;display:flex;align-items:center;justify-content:center;gap:6px}
 .btn:active{transform:scale(.95);opacity:.85}
@@ -37,14 +62,55 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .btn-custom{background:var(--card2);color:var(--text);flex:0.7}
 .btn-reset{background:var(--card2);color:var(--orange);border:2px solid var(--orange);margin-top:8px;padding:12px 20px;font-size:14px}
 .btn-reset:active{background:var(--orange);color:#fff}
-.btn-undo{background:transparent;color:var(--red);border:1.5px solid var(--red);padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-undo{background:transparent;color:var(--red);border:1.5px solid var(--red);padding:8px 14px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0}
 .btn-undo:active{background:var(--red);color:#fff}
-.log-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--card2)}
+.log-item{display:flex;align-items:center;padding:12px 0;border-bottom:1px solid var(--card2);gap:8px}
 .log-item:last-child{border:none}
-.log-time{color:var(--muted);font-size:14px;width:55px}
-.log-amount{font-weight:700;font-size:16px;flex:1;text-align:right;margin-right:12px}
+.log-time{color:var(--muted);font-size:14px;width:50px;flex-shrink:0}
+.log-amount{font-weight:700;font-size:16px;flex:1}
+.log-badges{display:flex;gap:4px;flex-shrink:0;margin-right:8px}
+.log-badge{font-size:10px;font-weight:700;padding:3px 7px;border-radius:6px;letter-spacing:.3px;white-space:nowrap}
+.badge-unfiltered{background:rgba(245,158,11,.15);color:var(--orange)}
+.badge-yesterday{background:rgba(139,92,246,.15);color:var(--purple)}
 .log-empty{color:var(--muted);font-size:14px;text-align:center;padding:20px 0}
 .filter-since{font-size:13px;color:var(--muted)}
+
+/* CALENDAR */
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.cal-nav-btn{background:var(--card2);border:none;color:var(--text);width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s}
+.cal-nav-btn:active{transform:scale(.9)}
+.cal-nav-title{font-size:16px;font-weight:700;text-transform:capitalize}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal-dow{font-size:11px;color:var(--muted);font-weight:600;padding:4px 0;text-transform:uppercase}
+.cal-day{aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;position:relative;transition:all .15s;color:var(--muted);gap:2px}
+.cal-day:active{transform:scale(.9)}
+.cal-day.has-data{color:var(--text)}
+.cal-day.today{border:2px solid var(--cyan)}
+.cal-day.selected{background:var(--blue);color:#fff}
+.cal-day.selected .cal-dot-row .cal-dot{background:rgba(255,255,255,.7)}
+.cal-day.future{opacity:.25;pointer-events:none}
+.cal-day.empty{pointer-events:none}
+.cal-dot-row{display:flex;gap:2px;height:6px;align-items:center;justify-content:center}
+.cal-dot{width:5px;height:5px;border-radius:50%}
+.cal-dot.green{background:var(--green)}.cal-dot.blue{background:var(--blue)}.cal-dot.orange{background:var(--orange)}
+.cal-day-detail{margin-top:16px;padding-top:16px;border-top:1px solid var(--card2)}
+.cal-day-header{margin-bottom:10px}
+.cal-day-date{font-size:15px;font-weight:700;text-transform:capitalize}
+.cal-day-total{font-size:28px;font-weight:800;margin-top:4px}
+.cal-day-total span{font-size:14px;font-weight:500;color:var(--muted)}
+.cal-day-bar-wrap{background:var(--card2);border-radius:99px;height:8px;overflow:hidden;margin:8px 0 4px}
+.cal-day-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--cyan));transition:width .3s}
+.cal-day-pct{font-size:12px;color:var(--muted);margin-bottom:12px}
+.cal-day-stats{display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.cal-stat{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.cal-stat b{color:var(--text);font-weight:700}
+
+/* Summary streak card */
+.streak-row{display:flex;gap:12px;margin-bottom:0}
+.streak-box{flex:1;background:var(--card2);border-radius:12px;padding:14px 12px;text-align:center}
+.streak-val{font-size:24px;font-weight:800}
+.streak-label{font-size:11px;color:var(--muted);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .2s}
 .modal-overlay.active{opacity:1;pointer-events:auto}
 .modal{background:var(--card);border-radius:var(--radius);padding:24px;width:100%;max-width:340px;text-align:center}
@@ -57,33 +123,39 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal .btn-cancel{background:var(--card2);color:var(--muted)}
 .modal .btn-confirm{background:var(--blue);color:#fff}
 .confirm-text{font-size:14px;color:var(--muted);line-height:1.5;margin-bottom:16px}
-.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:99px;font-weight:600;font-size:15px;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none}
+.modal-chips{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
+.toast{position:fixed;bottom:calc(var(--tab-h) + 16px);left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:99px;font-weight:600;font-size:15px;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .droplet{position:absolute;right:16px;top:50px;font-size:48px;opacity:.15}
 .logo-icon{font-size:32px}
 </style>
 </head>
 <body>
+
+<!-- ====== VIEW: HOME ====== -->
+<div class="view active" id="viewHome">
 <div class="header">
 <h1><span class="logo-icon">⚗️</span> Philtre</h1>
 <div class="subtitle">Water Tracker</div>
 <div class="date" id="dateDisplay"></div>
 </div>
 <div class="container">
-<!-- TODAY -->
 <div class="card">
 <div class="droplet">💧</div>
 <div class="card-title">Aujourd'hui <span class="edit-icon" onclick="openSettings()">⚙️</span></div>
 <div class="big-number" id="todayTotal">0 <span>ml</span></div>
 <div class="progress-wrap"><div class="progress-bar blue" id="todayBar" style="width:2%"></div></div>
 <div class="progress-label"><span id="todayPct">0%</span><span>Objectif : <span id="goalDisplay">2 000</span> ml</span></div>
-<div class="btn-row" style="margin-top:16px">
+<div class="chip-row">
+<div class="chip chip-yesterday" id="chipYesterday" onclick="toggleChip('yesterday')"><span class="chip-dot"></span>Hier</div>
+<div class="chip chip-unfiltered" id="chipUnfiltered" onclick="toggleChip('unfiltered')"><span class="chip-dot"></span>Non filtrée</div>
+</div>
+<div class="btn-row" style="margin-top:12px">
 <button class="btn btn-primary" id="btn1" onclick="addWater(getBtn(1))"></button>
 <button class="btn btn-half" id="btn2" onclick="addWater(getBtn(2))"></button>
 <button class="btn btn-custom" onclick="openCustom()">✏️</button>
 </div>
 </div>
-<!-- FILTER -->
 <div class="card">
 <div class="droplet">⚗️</div>
 <div class="card-title">Compteur filtre <span class="edit-icon" onclick="openFilterSettings()">⚙️</span></div>
@@ -93,17 +165,53 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="progress-label"><span id="filterPct">0%</span><span>Limite : <span id="filterLimitDisplay">400</span> L</span></div>
 <button class="btn btn-reset" onclick="openReset()">⚗️ Filtre changé — Réinitialiser</button>
 </div>
-<!-- LOG -->
 <div class="card">
 <div class="card-title">Journal du jour</div>
 <div id="logList"><div class="log-empty">Aucune entrée aujourd'hui</div></div>
 </div>
 </div>
+</div>
 
-<!-- CUSTOM MODAL -->
+<!-- ====== VIEW: HISTORY ====== -->
+<div class="view" id="viewHistory">
+<div class="header-hist">
+<h2>📅 Historique</h2>
+</div>
+<div class="container">
+<div class="card">
+<div class="streak-row" id="streakRow"></div>
+</div>
+<div class="card">
+<div class="cal-nav">
+<button class="cal-nav-btn" onclick="calNav(-1)">◀</button>
+<span class="cal-nav-title" id="calTitle"></span>
+<button class="cal-nav-btn" id="calNextBtn" onclick="calNav(1)">▶</button>
+</div>
+<div class="cal-grid" id="calGrid"></div>
+<div id="calDetail"></div>
+</div>
+</div>
+</div>
+
+<!-- TAB BAR -->
+<nav class="tab-bar" id="tabBar">
+<div class="tab-indicator" id="tabIndicator"></div>
+<button class="tab-btn active" data-tab="viewHome" onclick="switchTab('viewHome')">
+<span class="tab-icon">💧</span>Aujourd'hui
+</button>
+<button class="tab-btn" data-tab="viewHistory" onclick="switchTab('viewHistory')">
+<span class="tab-icon">📅</span>Historique
+</button>
+</nav>
+
+<!-- MODALS -->
 <div class="modal-overlay" id="customModal">
 <div class="modal">
 <h3>Quantité personnalisée</h3>
+<div class="modal-chips">
+<div class="chip chip-yesterday" id="chipYesterdayModal" onclick="toggleChip('yesterday')"><span class="chip-dot"></span>Hier</div>
+<div class="chip chip-unfiltered" id="chipUnfilteredModal" onclick="toggleChip('unfiltered')"><span class="chip-dot"></span>Non filtrée</div>
+</div>
 <input type="number" id="customInput" placeholder="ml" inputmode="numeric">
 <div class="btn-row">
 <button class="btn btn-cancel" onclick="closeModal('customModal')">Annuler</button>
@@ -111,46 +219,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 </div>
 </div>
-
-<!-- SETTINGS MODAL -->
 <div class="modal-overlay" id="settingsModal">
 <div class="modal">
 <h3>⚙️ Réglages hydratation</h3>
-<div class="modal-field">
-<label>Objectif quotidien (ml)</label>
-<input type="number" id="settGoal" inputmode="numeric">
-</div>
-<div class="modal-field">
-<label>Raccourci 1 (ml)</label>
-<input type="number" id="settBtn1" inputmode="numeric">
-</div>
-<div class="modal-field">
-<label>Raccourci 2 (ml)</label>
-<input type="number" id="settBtn2" inputmode="numeric">
-</div>
+<div class="modal-field"><label>Objectif quotidien (ml)</label><input type="number" id="settGoal" inputmode="numeric"></div>
+<div class="modal-field"><label>Raccourci 1 (ml)</label><input type="number" id="settBtn1" inputmode="numeric"></div>
+<div class="modal-field"><label>Raccourci 2 (ml)</label><input type="number" id="settBtn2" inputmode="numeric"></div>
 <div class="btn-row">
 <button class="btn btn-cancel" onclick="closeModal('settingsModal')">Annuler</button>
 <button class="btn btn-confirm" onclick="saveSettings()">Enregistrer</button>
 </div>
 </div>
 </div>
-
-<!-- FILTER SETTINGS MODAL -->
 <div class="modal-overlay" id="filterSettingsModal">
 <div class="modal">
 <h3>⚙️ Réglages filtre</h3>
-<div class="modal-field">
-<label>Limite du filtre (litres)</label>
-<input type="number" id="settFilterLimit" inputmode="numeric">
-</div>
+<div class="modal-field"><label>Limite du filtre (litres)</label><input type="number" id="settFilterLimit" inputmode="numeric"></div>
 <div class="btn-row">
 <button class="btn btn-cancel" onclick="closeModal('filterSettingsModal')">Annuler</button>
 <button class="btn btn-confirm" onclick="saveFilterSettings()">Enregistrer</button>
 </div>
 </div>
 </div>
-
-<!-- RESET MODAL -->
 <div class="modal-overlay" id="resetModal">
 <div class="modal">
 <h3>⚗️ Changer le filtre ?</h3>
@@ -161,29 +251,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
 const $=id=>document.getElementById(id);
-
 const DEFAULTS={dailyGoal:2000,btn1:650,btn2:325,filterLimit:400};
-
 let _mem={};
 const S={
   get(k){try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch{return _mem[k]||null}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}_mem[k]=v}
 };
+let chipState={yesterday:false,unfiltered:false};
 
-function getConfig(){
-  let c=S.get('philtre_config');
-  if(!c)c={...DEFAULTS};
-  return {...DEFAULTS,...c};
+/* === TABS === */
+function switchTab(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $(id).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelector(`.tab-btn[data-tab="${id}"]`).classList.add('active');
+  positionIndicator();
+  if(id==='viewHistory'){renderCal();renderStreaks()}
+  window.scrollTo({top:0,behavior:'instant'});
 }
+function positionIndicator(){
+  let act=document.querySelector('.tab-btn.active');
+  let ind=$('tabIndicator');
+  if(!act)return;
+  ind.style.left=act.offsetLeft+'px';
+  ind.style.width=act.offsetWidth+'px';
+}
+window.addEventListener('resize',positionIndicator);
+
+/* === CHIPS === */
+function toggleChip(t){chipState[t]=!chipState[t];syncChips()}
+function syncChips(){
+  [[$('chipYesterday'),$('chipYesterdayModal')]].flat().forEach(el=>{if(el)el.className='chip chip-yesterday'+(chipState.yesterday?' active-yesterday':'')});
+  [[$('chipUnfiltered'),$('chipUnfilteredModal')]].flat().forEach(el=>{if(el)el.className='chip chip-unfiltered'+(chipState.unfiltered?' active-unfiltered':'')});
+}
+
+/* === CONFIG & DATA === */
+function getConfig(){let c=S.get('philtre_config');return{...DEFAULTS,...(c||{})}}
 function saveConfig(c){S.set('philtre_config',c)}
 function getBtn(n){return getConfig()['btn'+n]}
-
 function todayKey(){return new Date().toISOString().slice(0,10)}
+function yesterdayKey(){let d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10)}
+function pad(n){return n<10?'0'+n:''+n}
 function getData(){
   let d=S.get('philtre_data');
   if(!d)d={entries:{},filterStart:todayKey(),filterEntries:{}};
@@ -195,149 +307,173 @@ function save(d){S.set('philtre_data',d)}
 
 function addWater(ml){
   if(!ml||ml<=0)return;
-  let d=getData(),k=todayKey(),now=new Date();
+  let d=getData(),now=new Date(),isY=chipState.yesterday,isF=!chipState.unfiltered;
+  let k=isY?yesterdayKey():todayKey();
   if(!d.entries[k])d.entries[k]=[];
-  d.entries[k].push({ml,time:now.toTimeString().slice(0,5)});
-  if(!d.filterEntries[k])d.filterEntries[k]=0;
-  d.filterEntries[k]+=ml;
-  save(d);
-  render();
-  showToast(`+${ml} ml ajoutés ✓`);
+  d.entries[k].push({ml,time:now.toTimeString().slice(0,5),filtered:isF,addedFor:isY?'yesterday':null});
+  if(isF){if(!d.filterEntries[k])d.filterEntries[k]=0;d.filterEntries[k]+=ml}
+  save(d);render();
+  let p=[`+${ml} ml`];if(isY)p.push('(hier)');if(!isF)p.push('· non filtrée');p.push('✓');
+  showToast(p.join(' '));
+  chipState={yesterday:false,unfiltered:false};syncChips();
 }
-
-function removeEntry(idx){
-  let d=getData(),k=todayKey();
-  if(!d.entries[k]||!d.entries[k][idx])return;
-  let ml=d.entries[k][idx].ml;
-  d.entries[k].splice(idx,1);
-  if(d.filterEntries[k])d.filterEntries[k]=Math.max(0,d.filterEntries[k]-ml);
-  save(d);
-  render();
-  showToast(`-${ml} ml supprimés`);
+function removeEntry(dk,idx){
+  let d=getData();if(!d.entries[dk]||!d.entries[dk][idx])return;
+  let e=d.entries[dk][idx];
+  if(e.filtered!==false&&d.filterEntries[dk])d.filterEntries[dk]=Math.max(0,d.filterEntries[dk]-e.ml);
+  d.entries[dk].splice(idx,1);
+  save(d);render();renderCal();
+  showToast(`-${e.ml} ml supprimés`);
 }
+function getFilterTotal(d){let t=0;for(let k in d.filterEntries)if(k>=d.filterStart)t+=d.filterEntries[k];return t}
 
-function getFilterTotal(d){
-  let total=0;
-  for(let k in d.filterEntries){
-    if(k>=d.filterStart)total+=d.filterEntries[k];
-  }
-  return total;
-}
-
+/* === RENDER HOME === */
 function render(){
-  let cfg=getConfig(),d=getData(),k=todayKey(),entries=d.entries[k]||[];
-  let now=new Date();
+  let cfg=getConfig(),d=getData(),k=todayKey(),entries=d.entries[k]||[],now=new Date();
   $('dateDisplay').textContent=now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-
-  // Buttons
   $('btn1').innerHTML=`🥤 ${cfg.btn1} ml`;
   $('btn2').innerHTML=`½ ${cfg.btn2} ml`;
-
-  // Today
   let todayMl=entries.reduce((s,e)=>s+e.ml,0);
   $('todayTotal').innerHTML=`${todayMl.toLocaleString('fr-FR')} <span>ml</span>`;
   let pct=Math.min(100,Math.round(todayMl/cfg.dailyGoal*100));
   $('todayBar').style.width=Math.max(2,pct)+'%';
   $('todayPct').textContent=pct+'%';
   $('goalDisplay').textContent=cfg.dailyGoal.toLocaleString('fr-FR');
-
-  // Filter
-  let fTotal=getFilterTotal(d);
-  let fL=fTotal/1000;
+  let fT=getFilterTotal(d),fL=fT/1000;
   $('filterTotal').innerHTML=`${fL.toFixed(1)} <span>L</span>`;
-  let fPct=Math.min(100,Math.round(fL/cfg.filterLimit*100));
-  $('filterBar').style.width=Math.max(2,fPct)+'%';
-  $('filterBar').className='progress-bar '+(fPct>=90?'orange':'green');
-  $('filterPct').textContent=fPct+'%';
+  let fP=Math.min(100,Math.round(fL/cfg.filterLimit*100));
+  $('filterBar').style.width=Math.max(2,fP)+'%';
+  $('filterBar').className='progress-bar '+(fP>=90?'orange':'green');
+  $('filterPct').textContent=fP+'%';
   $('filterLimitDisplay').textContent=cfg.filterLimit;
   let fs=new Date(d.filterStart+'T00:00:00');
   $('filterSince').textContent='Depuis le '+fs.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
-
-  // Log
-  let logEl=$('logList');
-  if(!entries.length){logEl.innerHTML='<div class="log-empty">Aucune entrée aujourd\'hui</div>';return}
-  logEl.innerHTML=entries.map((e,i)=>`
-    <div class="log-item">
-      <span class="log-time">${e.time}</span>
-      <span class="log-amount">${e.ml} ml</span>
-      <button class="btn-undo" onclick="removeEntry(${i})">✕</button>
-    </div>`).join('');
+  let items=entries.map((e,i)=>({...e,dateKey:k,idx:i})).sort((a,b)=>b.time.localeCompare(a.time));
+  let el=$('logList');
+  if(!items.length){el.innerHTML='<div class="log-empty">Aucune entrée aujourd\'hui</div>';return}
+  el.innerHTML=items.map(e=>{
+    let bg='';
+    if(e.filtered===false)bg+=`<span class="log-badge badge-unfiltered">Non filtrée</span>`;
+    if(e.addedFor==='yesterday')bg+=`<span class="log-badge badge-yesterday">Hier</span>`;
+    return `<div class="log-item"><span class="log-time">${e.time}</span><span class="log-amount">${e.ml} ml</span><span class="log-badges">${bg}</span><button class="btn-undo" onclick="removeEntry('${e.dateKey}',${e.idx})">✕</button></div>`;
+  }).join('');
 }
 
-// Modals
+/* === STREAKS / STATS === */
+function renderStreaks(){
+  let d=getData(),cfg=getConfig(),now=new Date();
+  // Current streak
+  let streak=0,check=new Date(now);
+  // Check today first
+  let tk=todayKey(),te=d.entries[tk]||[];
+  let todayTotal=te.reduce((s,e)=>s+e.ml,0);
+  if(todayTotal>=cfg.dailyGoal){streak=1;check.setDate(check.getDate()-1)} else{check.setDate(check.getDate()-1)}
+  while(true){
+    let dk=check.toISOString().slice(0,10);
+    let ent=d.entries[dk]||[];
+    let tot=ent.reduce((s,e)=>s+e.ml,0);
+    if(tot>=cfg.dailyGoal){streak++;check.setDate(check.getDate()-1)} else break;
+  }
+  // Total days tracked
+  let totalDays=Object.keys(d.entries).filter(k=>(d.entries[k]||[]).length>0).length;
+  // Average
+  let allTotals=Object.keys(d.entries).map(k=>(d.entries[k]||[]).reduce((s,e)=>s+e.ml,0)).filter(t=>t>0);
+  let avg=allTotals.length?Math.round(allTotals.reduce((a,b)=>a+b,0)/allTotals.length):0;
+
+  $('streakRow').innerHTML=`
+    <div class="streak-box"><div class="streak-val">${streak}</div><div class="streak-label">🔥 Série</div></div>
+    <div class="streak-box"><div class="streak-val">${totalDays}</div><div class="streak-label">📝 Jours</div></div>
+    <div class="streak-box"><div class="streak-val">${avg>0?(avg/1000).toFixed(1):0}</div><div class="streak-label">⌀ Moy. (L)</div></div>`;
+}
+
+/* === CALENDAR === */
+let calYear,calMonth,calSelected=null;
+function initCal(){let n=new Date();calYear=n.getFullYear();calMonth=n.getMonth();calSelected=todayKey()}
+function calNav(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++}
+  if(calMonth<0){calMonth=11;calYear--}
+  calSelected=null;renderCal();
+}
+function renderCal(){
+  let now=new Date(),ty=now.getFullYear(),tm=now.getMonth(),td=now.getDate();
+  let isCF=calYear>ty||(calYear===ty&&calMonth>=tm);
+  $('calNextBtn').style.opacity=isCF?'.25':'1';
+  $('calNextBtn').style.pointerEvents=isCF?'none':'auto';
+  let mN=['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  $('calTitle').textContent=mN[calMonth]+' '+calYear;
+  let cfg=getConfig(),d=getData();
+  let first=new Date(calYear,calMonth,1),dim=new Date(calYear,calMonth+1,0).getDate();
+  let sDow=(first.getDay()+6)%7;
+  let h=['lun','mar','mer','jeu','ven','sam','dim'].map(x=>`<div class="cal-dow">${x}</div>`).join('');
+  for(let i=0;i<sDow;i++)h+=`<div class="cal-day empty"></div>`;
+  for(let day=1;day<=dim;day++){
+    let dk=`${calYear}-${pad(calMonth+1)}-${pad(day)}`;
+    let ent=d.entries[dk]||[],tot=ent.reduce((s,e)=>s+e.ml,0);
+    let filt=ent.filter(e=>e.filtered!==false).reduce((s,e)=>s+e.ml,0);
+    let unfilt=tot-filt,pct=cfg.dailyGoal>0?tot/cfg.dailyGoal:0;
+    let isF=(calYear===ty&&calMonth===tm&&day>td)||(calYear>ty)||(calYear===ty&&calMonth>tm);
+    let isT=calYear===ty&&calMonth===tm&&day===td;
+    let isS=calSelected===dk,hasD=ent.length>0;
+    let cls='cal-day';if(hasD)cls+=' has-data';if(isT)cls+=' today';if(isS)cls+=' selected';if(isF)cls+=' future';
+    let dots='<div class="cal-dot-row">';
+    if(hasD){if(pct>=1)dots+='<span class="cal-dot green"></span>';else if(filt>0)dots+='<span class="cal-dot blue"></span>';if(unfilt>0)dots+='<span class="cal-dot orange"></span>'}
+    dots+='</div>';
+    h+=`<div class="${cls}" onclick="selectDay('${dk}')">${day}${dots}</div>`;
+  }
+  $('calGrid').innerHTML=h;
+  renderCalDetail();
+}
+function selectDay(dk){calSelected=dk;renderCal()}
+function renderCalDetail(){
+  let el=$('calDetail');
+  if(!calSelected){el.innerHTML='';return}
+  let d=getData(),cfg=getConfig(),ent=d.entries[calSelected]||[];
+  let dt=new Date(calSelected+'T00:00:00');
+  let ds=dt.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  let tot=ent.reduce((s,e)=>s+e.ml,0),filt=ent.filter(e=>e.filtered!==false).reduce((s,e)=>s+e.ml,0),unfilt=tot-filt;
+  let pct=Math.min(100,Math.round(tot/cfg.dailyGoal*100));
+  let html=`<div class="cal-day-detail"><div class="cal-day-header"><span class="cal-day-date">${ds}</span></div>
+    <div class="cal-day-total">${tot.toLocaleString('fr-FR')} <span>ml</span></div>
+    <div class="cal-day-bar-wrap"><div class="cal-day-bar" style="width:${Math.max(2,pct)}%"></div></div>
+    <div class="cal-day-pct">${pct}% de l'objectif</div>
+    <div class="cal-day-stats">
+      <span class="cal-stat">💧 Filtrée : <b>${filt.toLocaleString('fr-FR')} ml</b></span>
+      <span class="cal-stat">🥤 Non filtrée : <b>${unfilt.toLocaleString('fr-FR')} ml</b></span>
+    </div>`;
+  if(ent.length){
+    let sorted=[...ent].map((e,i)=>({...e,idx:i})).sort((a,b)=>b.time.localeCompare(a.time));
+    html+=sorted.map(e=>{
+      let bg='';if(e.filtered===false)bg+=`<span class="log-badge badge-unfiltered">Non filtrée</span>`;
+      if(e.addedFor==='yesterday')bg+=`<span class="log-badge badge-yesterday">Hier</span>`;
+      return `<div class="log-item"><span class="log-time">${e.time}</span><span class="log-amount">${e.ml} ml</span><span class="log-badges">${bg}</span><button class="btn-undo" onclick="removeEntry('${calSelected}',${e.idx})">✕</button></div>`;
+    }).join('');
+  } else html+=`<div class="log-empty">Aucune entrée ce jour</div>`;
+  html+=`</div>`;el.innerHTML=html;
+}
+
+/* === MODALS === */
 function closeModal(id){$(id).classList.remove('active')}
-
-function openCustom(){$('customModal').classList.add('active');$('customInput').value='';setTimeout(()=>$('customInput').focus(),200)}
-function confirmCustom(){let v=parseInt($('customInput').value);if(v>0){addWater(v);closeModal('customModal')}else{$('customInput').style.borderColor='var(--red)'}}
-
-function openSettings(){
-  let c=getConfig();
-  $('settGoal').value=c.dailyGoal;
-  $('settBtn1').value=c.btn1;
-  $('settBtn2').value=c.btn2;
-  $('settingsModal').classList.add('active');
-  setTimeout(()=>$('settGoal').focus(),200);
-}
+function openCustom(){$('customModal').classList.add('active');$('customInput').value='';syncChips();setTimeout(()=>$('customInput').focus(),200)}
+function confirmCustom(){let v=parseInt($('customInput').value);if(v>0){addWater(v);closeModal('customModal')}else $('customInput').style.borderColor='var(--red)'}
+function openSettings(){let c=getConfig();$('settGoal').value=c.dailyGoal;$('settBtn1').value=c.btn1;$('settBtn2').value=c.btn2;$('settingsModal').classList.add('active');setTimeout(()=>$('settGoal').focus(),200)}
 function saveSettings(){
   let g=parseInt($('settGoal').value),b1=parseInt($('settBtn1').value),b2=parseInt($('settBtn2').value);
-  if(g>0&&b1>0&&b2>0){
-    let c=getConfig();
-    c.dailyGoal=g;c.btn1=b1;c.btn2=b2;
-    saveConfig(c);
-    closeModal('settingsModal');
-    render();
-    showToast('Réglages sauvegardés ✓');
-  }
+  if(g>0&&b1>0&&b2>0){let c=getConfig();c.dailyGoal=g;c.btn1=b1;c.btn2=b2;saveConfig(c);closeModal('settingsModal');render();showToast('Réglages sauvegardés ✓')}
 }
-
-function openFilterSettings(){
-  let c=getConfig();
-  $('settFilterLimit').value=c.filterLimit;
-  $('filterSettingsModal').classList.add('active');
-  setTimeout(()=>$('settFilterLimit').focus(),200);
-}
-function saveFilterSettings(){
-  let v=parseInt($('settFilterLimit').value);
-  if(v>0){
-    let c=getConfig();
-    c.filterLimit=v;
-    saveConfig(c);
-    closeModal('filterSettingsModal');
-    render();
-    showToast('Limite filtre mise à jour ✓');
-  }
-}
-
+function openFilterSettings(){let c=getConfig();$('settFilterLimit').value=c.filterLimit;$('filterSettingsModal').classList.add('active');setTimeout(()=>$('settFilterLimit').focus(),200)}
+function saveFilterSettings(){let v=parseInt($('settFilterLimit').value);if(v>0){let c=getConfig();c.filterLimit=v;saveConfig(c);closeModal('filterSettingsModal');render();showToast('Limite filtre mise à jour ✓')}}
 function openReset(){$('resetModal').classList.add('active')}
-function confirmReset(){
-  let d=getData();
-  d.filterStart=todayKey();
-  d.filterEntries={};
-  save(d);
-  closeModal('resetModal');
-  render();
-  showToast('Compteur filtre réinitialisé ⚗️');
-}
-
+function confirmReset(){let d=getData();d.filterStart=todayKey();d.filterEntries={};save(d);closeModal('resetModal');render();showToast('Compteur filtre réinitialisé ⚗️')}
 let toastTimer;
-function showToast(msg){
-  let t=$('toast');t.textContent=msg;t.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
-}
+function showToast(m){let t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2000)}
 
-// Enter key in modals
 ['customInput','settGoal','settBtn1','settBtn2','settFilterLimit'].forEach(id=>{
-  $(id).addEventListener('keydown',e=>{
-    if(e.key==='Enter'){
-      if(id==='customInput')confirmCustom();
-      else if(id==='settFilterLimit')saveFilterSettings();
-      else saveSettings();
-    }
-  });
+  $(id).addEventListener('keydown',e=>{if(e.key==='Enter'){if(id==='customInput')confirmCustom();else if(id==='settFilterLimit')saveFilterSettings();else saveSettings()}});
 });
 
-render();
+syncChips();render();initCal();
+requestAnimationFrame(positionIndicator);
 </script>
 </body>
 </html>
