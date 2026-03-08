@@ -465,37 +465,48 @@ function openFilterSettings(){let c=getConfig();$('settFilterLimit').value=c.fil
 function saveFilterSettings(){let v=parseInt($('settFilterLimit').value);if(v>0){let c=getConfig();c.filterLimit=v;saveConfig(c);closeModal('filterSettingsModal');render();showToast('Limite filtre mise à jour ✓')}}
 function openReset(){$('resetModal').classList.add('active')}
 function confirmReset(){let d=getData();d.filterStart=todayKey();d.filterEntries={};save(d);closeModal('resetModal');render();showToast('Compteur filtre réinitialisé ⚗️')}
-let toastTimer;
-function showToast(m){let t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2000)}
 
 ['customInput','settGoal','settBtn1','settBtn2','settFilterLimit'].forEach(id=>{
   $(id).addEventListener('keydown',e=>{if(e.key==='Enter'){if(id==='customInput')confirmCustom();else if(id==='settFilterLimit')saveFilterSettings();else saveSettings()}});
 });
 
-/* === SWIPE TO DISMISS TOAST === */
-let startY = 0;
-const toastEl = $('toast');
+/* === TOAST === */
+let toastTimer;
+function showToast(m) {
+  const t = $('toast');
+  t.textContent = m;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(dismissToast, 2000);
+}
+function dismissToast() {
+  $('toast').classList.remove('show');
+  clearTimeout(toastTimer);
+}
 
-toastEl.addEventListener('touchstart', (e) => {
-    startY = e.touches[0].clientY;
+/* === SWIPE TO DISMISS TOAST (sur tout l'écran) === */
+let swipeStartY = 0;
+let swipeActive = false;
+
+document.addEventListener('touchstart', (e) => {
+  if (!$('toast').classList.contains('show')) return;
+  swipeStartY = e.touches[0].clientY;
+  swipeActive = true;
 }, { passive: true });
 
-toastEl.addEventListener('touchmove', (e) => {
-    if (!startY) return;
-    let currentY = e.touches[0].clientY;
-    let diff = currentY - startY;
-    
-    // Si on glisse vers le bas de plus de 15 pixels
-    if (diff > 15) {
-        toastEl.classList.remove('show');
-        clearTimeout(toastTimer); // Annule le chrono de 2 secondes
-        startY = 0; // Réinitialise pour le prochain swipe
-    }
+document.addEventListener('touchmove', (e) => {
+  if (!swipeActive) return;
+  const diff = e.touches[0].clientY - swipeStartY;
+  if (diff > 20) {          // glisse vers le bas de 20 px → dismiss
+    dismissToast();
+    swipeActive = false;
+  }
 }, { passive: true });
 
-toastEl.addEventListener('touchend', () => {
-    startY = 0;
-});
+document.addEventListener('touchend', () => { swipeActive = false; });
+
+/* Tap sur le toast pour le fermer aussi */
+$('toast').addEventListener('click', dismissToast);
 
 syncChips();render();initCal();
 requestAnimationFrame(positionIndicator);
