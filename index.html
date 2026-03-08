@@ -124,7 +124,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal .btn-confirm{background:var(--blue);color:#fff}
 .confirm-text{font-size:14px;color:var(--muted);line-height:1.5;margin-bottom:16px}
 .modal-chips{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
-.toast{position:fixed;bottom:calc(var(--tab-h) + 16px);left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:99px;font-weight:600;font-size:15px;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);touch-action:pan-y;}
+.toast{position:fixed;bottom:calc(var(--tab-h) + 16px);left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:99px;font-weight:600;font-size:15px;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:auto;touch-action:none;}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .droplet{position:absolute;right:16px;top:50px;font-size:48px;opacity:.15}
 .logo-icon{font-size:32px}
@@ -481,13 +481,21 @@ toastEl.addEventListener('touchstart', (e) => {
 }, { passive: true });
 
 toastEl.addEventListener('touchmove', (e) => {
+    if (!startY) return;
     let currentY = e.touches[0].clientY;
+    let diff = currentY - startY;
+    
     // Si on glisse vers le bas de plus de 15 pixels
-    if (currentY - startY > 15) {
+    if (diff > 15) {
         toastEl.classList.remove('show');
-        clearTimeout(toastTimer); // Annuler la disparition automatique pour éviter les bugs
+        clearTimeout(toastTimer); // Annule le chrono de 2 secondes
+        startY = 0; // Réinitialise pour le prochain swipe
     }
 }, { passive: true });
+
+toastEl.addEventListener('touchend', () => {
+    startY = 0;
+});
 
 syncChips();render();initCal();
 requestAnimationFrame(positionIndicator);
