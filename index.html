@@ -124,7 +124,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal .btn-confirm{background:var(--blue);color:#fff}
 .confirm-text{font-size:14px;color:var(--muted);line-height:1.5;margin-bottom:16px}
 .modal-chips{display:flex;gap:8px;justify-content:center;margin-bottom:16px}
-.toast{position:fixed;bottom:calc(var(--tab-h) + 16px);left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:99px;font-weight:600;font-size:15px;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none}
+.toast{position:fixed;bottom:calc(var(--tab-h) + 16px);left:50%;transform:translateX(-50%) translateY(100px);background:var(--green);color:#fff;padding:12px 24px;border-radius:99px;font-weight:600;font-size:15px;z-index:200;transition:transform .3s cubic-bezier(.4,0,.2,1);touch-action:pan-y;}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .droplet{position:absolute;right:16px;top:50px;font-size:48px;opacity:.15}
 .logo-icon{font-size:32px}
@@ -472,8 +472,37 @@ function showToast(m){let t=$('toast');t.textContent=m;t.classList.add('show');c
   $(id).addEventListener('keydown',e=>{if(e.key==='Enter'){if(id==='customInput')confirmCustom();else if(id==='settFilterLimit')saveFilterSettings();else saveSettings()}});
 });
 
+/* === SWIPE TO DISMISS TOAST === */
+let startY = 0;
+const toastEl = $('toast');
+
+toastEl.addEventListener('touchstart', (e) => {
+    startY = e.touches[0].clientY;
+}, { passive: true });
+
+toastEl.addEventListener('touchmove', (e) => {
+    let currentY = e.touches[0].clientY;
+    // Si on glisse vers le bas de plus de 15 pixels
+    if (currentY - startY > 15) {
+        toastEl.classList.remove('show');
+        clearTimeout(toastTimer); // Annuler la disparition automatique pour éviter les bugs
+    }
+}, { passive: true });
+
 syncChips();render();initCal();
 requestAnimationFrame(positionIndicator);
+
+// Détecter un ajout via l'URL (ex: ?add=600)
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const amountToAdd = parseInt(params.get('add'));
+    
+    if (amountToAdd > 0) {
+        addWater(amountToAdd);
+        // Nettoyer l'URL pour éviter de rajouter l'eau si on actualise la page
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+});
 </script>
 </body>
 </html>
